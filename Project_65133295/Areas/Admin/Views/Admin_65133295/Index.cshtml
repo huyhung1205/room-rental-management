@@ -1,0 +1,213 @@
+﻿@model Project_65133295.Areas.Admin.Data.AdminDashboardViewModel_65133295
+
+@{
+    ViewBag.Title = "Revenue Report & Activity";
+    ViewBag.PageTitle = "Reports & Statistics";
+    ViewBag.PageDescription = "Overview of business activities and rental performance";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<!-- Stat Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Revenue -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-yellow-50 rounded-xl">
+                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <span class="text-xs font-bold text-green-500 bg-green-50 px-2 py-1 rounded-full">+12.5%</span>
+        </div>
+        <h3 class="text-gray-500 text-sm font-medium">Total Revenue</h3>
+        <p class="text-2xl font-bold text-gray-800 mt-1">@Model.TotalRevenue.ToString("N0") <span class="text-sm font-normal text-gray-400">VND</span></p>
+    </div>
+
+    <!-- Occupancy Rate -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-blue-50 rounded-xl">
+                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+            </div>
+            <span class="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full">
+                @if(Model.TotalRooms > 0) {
+                    @((Model.OccupiedRooms * 100 / Model.TotalRooms))
+                } else {
+                    <span>0</span>
+                }%
+            </span>
+        </div>
+        <h3 class="text-gray-500 text-sm font-medium">Occupancy Rate</h3>
+        <p class="text-2xl font-bold text-gray-800 mt-1">@Model.OccupiedRooms / @Model.TotalRooms <span class="text-sm font-normal text-gray-400">rooms</span></p>
+    </div>
+
+    <!-- Pending Bookings -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-red-50 rounded-xl">
+                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            @if(Model.PendingBookings > 0) {
+                <span class="flex h-3 w-3 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+            }
+        </div>
+        <h3 class="text-gray-500 text-sm font-medium">Pending Bookings</h3>
+        <p class="text-2xl font-bold text-gray-800 mt-1">@Model.PendingBookings <span class="text-sm font-normal text-gray-400">requests</span></p>
+    </div>
+
+    <!-- Total Users -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-purple-50 rounded-xl">
+                <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+            </div>
+            <span class="text-xs font-bold text-purple-500 bg-purple-50 px-2 py-1 rounded-full">Customers</span>
+        </div>
+        <h3 class="text-gray-500 text-sm font-medium">Total Users</h3>
+        <p class="text-2xl font-bold text-gray-800 mt-1">@Model.TotalUsers <span class="text-sm font-normal text-gray-400">members</span></p>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Revenue Chart -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[400px]">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-800 text-lg">Revenue Chart</h3>
+            <div class="flex items-center text-xs text-gray-400">
+                <span class="flex items-center mr-3"><span class="w-3 h-3 bg-primary rounded-full mr-1"></span> Last 6 months</span>
+            </div>
+        </div>
+        <div class="relative flex-1 min-h-0">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Room Status Chart -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[400px]">
+        <h3 class="font-bold text-gray-800 text-lg mb-4">Room Status</h3>
+        <div class="relative flex-1 min-h-0">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="font-bold text-gray-800">Recent Activity</h3>
+        <a href="@Url.Action("ViewActivityLogs", "Admin_65133295")" class="text-sm text-primary font-medium hover:underline">View All</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-50">
+                    <th class="pb-3 px-2">Time</th>
+                    <th class="pb-3 px-2">User</th>
+                    <th class="pb-3 px-2">Action</th>
+                    <th class="pb-3 px-2">Description</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @foreach (var activity in Model.RecentActivities)
+                {
+                    <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition">
+                        <td class="py-4 px-2 text-gray-500">@activity.Date.ToString("HH:mm dd/MM")</td>
+                        <td class="py-4 px-2 font-medium text-gray-800">@activity.User</td>
+                        <td class="py-4 px-2">
+                            <span class="px-2 py-1 bg-yellow-50 text-yellow-700 text-xs font-bold rounded">@activity.Action</span>
+                        </td>
+                        <td class="py-4 px-2 text-gray-600">@activity.Description</td>
+                    </tr>
+                }
+                @if (!Model.RecentActivities.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-gray-400 italic">No activities recorded yet.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Revenue Chart
+        const revCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Encode(Model.MonthlyRevenue.Select(m => m.Month))),
+                datasets: [{
+                    label: 'Revenue (VND)',
+                    data: @Html.Raw(Json.Encode(Model.MonthlyRevenue.Select(m => m.Revenue))),
+                    backgroundColor: '#facc15',
+                    borderRadius: 8,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f3f4f6' },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) return (value/1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return (value/1000).toFixed(0) + 'K';
+                                return value;
+                            }
+                        }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Encode(Model.RoomStatusBreakdown.Select(s => s.StatusName))),
+                datasets: [{
+                    data: @Html.Raw(Json.Encode(Model.RoomStatusBreakdown.Select(s => s.Count))),
+                    backgroundColor: ['#facc15', '#3b82f6', '#ef4444', '#10b981', '#6366f1'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 12 }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

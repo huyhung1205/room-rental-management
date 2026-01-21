@@ -1,0 +1,152 @@
+﻿@{
+    ViewBag.Title = "Booking Guide";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="bg-gray-50 min-h-screen">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Booking Guide</h1>
+            <p class="text-white/90 text-lg max-w-2xl mx-auto">
+                In just a few simple steps, you can find and book your ideal rental room on ThanhThao Stay.
+            </p>
+        </div>
+    </div>
+
+    <!-- Process Flow -->
+    <div class="container mx-auto px-4 -mt-8 pb-16">
+        <div class="max-w-4xl mx-auto space-y-8">
+            
+            <!-- Step 1 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-yellow-100 p-8 flex items-start space-x-6 hover:shadow-md transition">
+                <div class="flex-shrink-0 w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl font-bold text-yellow-600 border border-yellow-200">
+                    1
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">Find the Perfect Room</h3>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        Visit the homepage or "Search Rooms" menu. Use smart filters to narrow down your search:
+                    </p>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-gray-600 text-sm">
+                        <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Filter by District/Area</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Select Desired Price Range</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Choose Suitable Area</li>
+                        <li class="flex items-center"><svg class="w-4 h-4 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Amenities: WiFi, AC, Kitchen...</li>
+                    </ul>
+                    <div class="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-100 text-sm text-yellow-800 italic">
+                        <strong>Tip:</strong> Pay attention to rooms with high star ratings to ensure the best service quality.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-yellow-100 p-8 flex items-start space-x-6 hover:shadow-md transition">
+                <div class="flex-shrink-0 w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl font-bold text-yellow-600 border border-yellow-200">
+                    2
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">View Details and Book Room</h3>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        Once you find your ideal room, click view details. Here you can check real images, descriptions, and reviews from previous tenants.
+                    </p>
+                    <p class="text-gray-600">
+                        If the room status is <span class="text-green-600 font-bold">"Available"</span>, press <span class="bg-primary text-white px-3 py-1 rounded-md text-sm font-bold">BOOK NOW</span>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-yellow-100 p-8 flex items-start space-x-6 hover:shadow-md transition">
+                <div class="flex-shrink-0 w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl font-bold text-yellow-600 border border-yellow-200">
+                    3
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">Login / Sign Up</h3>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        You need an account to make a booking.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 border border-gray-100 rounded-xl">
+                            <span class="font-bold text-gray-800 block mb-1">Don't have an account:</span>
+                            <span class="text-sm text-gray-500">Click "Sign Up" and follow the instructions. Remember to verify your email to activate booking features.</span>
+                        </div>
+                        <div class="p-4 border border-gray-100 rounded-xl">
+                            <span class="font-bold text-gray-800 block mb-1">Already have an account:</span>
+                            <span class="text-sm text-gray-500">Go to "Login" with your email or username.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-yellow-100 p-8 flex items-start space-x-6 hover:shadow-md transition">
+                <div class="flex-shrink-0 w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl font-bold text-yellow-600 border border-yellow-200">
+                    4
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">Fill in Booking Information</h3>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        Complete the booking form so the landlord can review and approve:
+                    </p>
+                    <ul class="space-y-2 text-gray-600 text-sm">
+                        <li class="flex items-center"><span class="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>Desired check-in date</li>
+                        <li class="flex items-center"><span class="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>Expected rental period (e.g., 6 months, 12 months)</li>
+                        <li class="flex items-center"><span class="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>Deposit amount you're willing to pay</li>
+                        <li class="flex items-center"><span class="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></span>Additional notes: Special requests, pets, etc.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-yellow-100 p-8 flex items-start space-x-6 hover:shadow-md transition">
+                <div class="flex-shrink-0 w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl font-bold text-yellow-600 border border-yellow-200">
+                    5
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">Wait for Confirmation & Receive Room</h3>
+                    <p class="text-gray-600 leading-relaxed mb-4">
+                        After submission, your request will be in <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded font-medium">Pending Approval</span> status. 
+                        The landlord will contact you as soon as possible.
+                    </p>
+                    <p class="text-gray-600">
+                        Once approved, the system will automatically generate an electronic contract. You can pay the deposit and prepare to move into your new room!
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="max-w-4xl mx-auto mt-20">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Frequently Asked Questions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-gray-100">
+                    <h4 class="font-bold text-gray-800 mb-2">Is there a booking fee?</h4>
+                    <p class="text-sm text-gray-500">Completely free! You only pay the deposit and room rent when the landlord approves and signs the contract.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-gray-100">
+                    <h4 class="font-bold text-gray-800 mb-2">What if the landlord doesn't approve?</h4>
+                    <p class="text-sm text-gray-500">You can choose another room. Being rejected will not affect your account reputation.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-gray-100">
+                    <h4 class="font-bold text-gray-800 mb-2">Can I book multiple rooms at once?</h4>
+                    <p class="text-sm text-gray-500">Yes, but it's best to prioritize 1-2 rooms you like most to manage requests easily.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-gray-100">
+                    <h4 class="font-bold text-gray-800 mb-2">How can I contact the landlord quickly?</h4>
+                    <p class="text-sm text-gray-500">After booking, the landlord will have your contact information. You can also see their phone number on the room details page.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="max-w-4xl mx-auto mt-20 text-center bg-white rounded-3xl p-12 border-2 border-dashed border-yellow-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Ready to find your dream room?</h2>
+            <p class="text-gray-500 mb-8 max-w-md mx-auto">Hundreds of quality rooms are waiting for you. Start your search today!</p>
+            <a href="@Url.Action("SearchRoom", "Guest_65133295")" class="inline-block px-10 py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition shadow-lg shadow-yellow-200">
+                SEARCH NOW
+            </a>
+        </div>
+    </div>
+</div>

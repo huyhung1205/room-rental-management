@@ -1,0 +1,205 @@
+﻿@model IEnumerable<Project_65133295.Models.Reviews>
+
+@{
+    ViewBag.Title = "Approve Reviews";
+    ViewBag.PageTitle = "Review Moderation";
+    ViewBag.PageDescription = "Approve or reject tenant reviews before public display";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    @Html.AntiForgeryToken()
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 text-gray-600 text-[11px] uppercase font-bold tracking-wider">
+                <tr>
+                    <th class="px-6 py-4">Room</th>
+                    <th class="px-6 py-4">Reviewer</th>
+                    <th class="px-6 py-4">Rating</th>
+                    <th class="px-6 py-4">Review Content</th>
+                    <th class="px-6 py-4">Submitted Date</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr id="review-row-@item.ReviewID" class="hover:bg-gray-50/50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-yellow-600">P.@(item.Rooms?.RoomNumber)</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium">@(item.Users?.FirstName) @(item.Users?.LastName)</div>
+                                <div class="text-[10px] text-gray-400">@(item.Users?.Email)</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center text-yellow-400">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <svg class="w-4 h-4 @(i <= item.Rating ? "fill-current" : "text-gray-200 fill-current")" viewBox="0 0 20 20">
+                                            <path d="M10.394 2.827a1 1 0 00-1.788 0L7.123 5.31l-3.087.449a1 1 0 00-.554 1.706l2.234 2.177-.527 3.075a1 1 0 001.451 1.054L10 12.33l2.76 1.45a1 1 0 001.451-1.054l-.527-3.075 2.234-2.177a1 1 0 00-.554-1.706l-3.087-.449-1.479-2.483z"></path>
+                                        </svg>
+                                    }
+                                    <span class="ml-2 text-sm font-bold text-gray-700">@item.Rating.ToString("0")</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-sm text-gray-600 max-w-xs truncate" title="@item.Comment">@item.Comment</p>
+                            </td>
+                            <td class="px-6 py-4 text-xs text-gray-400">
+                                @item.CreatedAt.Value.ToString("dd/MM/yyyy")
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="openModerationModal(@item.ReviewID, 'P.@(item.Rooms?.RoomNumber)', '@(item.Users?.FirstName) @(item.Users?.LastName)', @((int)item.Rating), '@(item.Comment?.Replace("'", "\\'").Replace("\n", "\\n"))', '@(item.CreatedAt.Value.ToString("dd/MM/yyyy"))')" 
+                                        class="px-4 py-2 bg-yellow-400 text-white text-xs font-bold rounded-xl hover:bg-yellow-500 transition shadow-sm transform hover:scale-105 flex items-center ml-auto">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    Review
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="px-6 py-20 text-center">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <h4 class="text-gray-500 font-medium">No pending reviews at this time</h4>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+<!-- Moderation Modal -->
+<div id="reviewModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeReviewModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-middle bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-yellow-100">
+            <div class="bg-white px-8 pt-8 pb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight" id="modal-title">Review Details</h3>
+                    <button onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4 pb-6 border-b border-dashed border-gray-100">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Room</p>
+                            <p id="modalRoom" class="font-bold text-yellow-600"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Submitted Date</p>
+                            <p id="modalDate" class="font-medium text-gray-700"></p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Reviewer</p>
+                            <p id="modalUser" class="font-bold text-gray-900"></p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Overall Rating</p>
+                        <div id="modalStars" class="flex text-yellow-400"></div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Review Comment</p>
+                        <p id="modalComment" class="text-sm text-gray-700 leading-relaxed italic"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-8 py-6 sm:flex sm:flex-row-reverse gap-3">
+                <button onclick="updateStatus(null, 'Approved')" 
+                        class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 bg-yellow-400 text-white text-sm font-black rounded-xl hover:bg-yellow-500 shadow-lg shadow-yellow-400/30 transition-all active:scale-95">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    APPROVE
+                </button>
+                <button onclick="updateStatus(null, 'Rejected')" 
+                        class="mt-3 sm:mt-0 w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 bg-white text-red-600 text-sm font-black rounded-xl border-2 border-red-50 border-red-100 hover:bg-red-50 transition-all active:scale-95">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    REJECT
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+@section scripts {
+    <script>
+        let currentReviewId = null;
+
+        function openModerationModal(id, room, user, rating, comment, date) {
+            currentReviewId = id;
+            $('#modalRoom').text(room);
+            $('#modalUser').text(user);
+            $('#modalDate').text(date);
+            $('#modalComment').text(comment);
+            
+            // Render stars
+            let starsHtml = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHtml += `<svg class="w-5 h-5 ${i <= rating ? 'text-yellow-400 fill-current' : 'text-gray-200 fill-current'}" viewBox="0 0 20 20">
+                    <path d="M10.394 2.827a1 1 0 00-1.788 0L7.123 5.31l-3.087.449a1 1 0 00-.554 1.706l2.234 2.177-.527 3.075a1 1 0 001.451 1.054L10 12.33l2.76 1.45a1 1 0 001.451-1.054l-.527-3.075 2.234-2.177a1 1 0 00-.554-1.706l-3.087-.449-1.479-2.483z"></path>
+                </svg>`;
+            }
+            $('#modalStars').html(starsHtml);
+
+            $('#reviewModal').removeClass('hidden');
+        }
+
+        function closeReviewModal() {
+            $('#reviewModal').addClass('hidden');
+            currentReviewId = null;
+        }
+
+        function updateStatus(id, status) {
+            // If called from modal without ID, use currentReviewId
+            if (!id && currentReviewId) id = currentReviewId;
+            if (!id) return;
+
+            const actionLabel = status === 'Approved' ? 'Approved' : 'Rejected';
+            
+            $.ajax({
+                url: '@Url.Action("UpdateReviewStatus")',
+                type: 'POST',
+                data: {
+                    id: id,
+                    status: status,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(res) {
+                    if (res.success) {
+                        $('#review-row-' + id).fadeOut(300, function() {
+                            $(this).remove();
+                            if ($('tbody tr').length === 0) {
+                                location.reload();
+                            }
+                        });
+                        
+                        closeReviewModal();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Review ' + actionLabel.toLowerCase() + ' successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire('Error', res.message, 'error');
+                    }
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,296 @@
+﻿@using Project_65133295.Models
+@model IEnumerable<Rooms>
+
+@{
+    ViewBag.Title = "Search Rooms";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    var utilities = ViewBag.Utilities as List<Project_65133295.Models.Utilities>;
+    var minPrice = ViewBag.MinPrice as decimal?;
+    var maxPrice = ViewBag.MaxPrice as decimal?;
+    var minArea = ViewBag.MinArea as decimal?;
+    var maxArea = ViewBag.MaxArea as decimal?;
+    var query = ViewBag.Query as string;
+    var sortOrder = ViewBag.SortOrder as string;
+    var selectedUtils = ViewBag.SelectedUtilities as int[];
+    
+    int currentPage = ViewBag.Page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="container mx-auto px-4">
+        <form id="searchForm" action="@Url.Action("SearchRoom")" method="get" class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <!-- Sidebar Filters -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-24 border border-yellow-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-yellow-600">Search Filters</h3>
+                        <a href="@Url.Action("SearchRoom")" class="text-sm text-gray-500 hover:text-primary hover:underline">Reset</a>
+                    </div>
+                    
+                    <!-- Search Text -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <div class="relative">
+                            <input type="text" name="query" value="@query" placeholder="Enter room number, title, address..." 
+                                   class="w-full pl-10 pr-4 py-2 border border-yellow-200 rounded-lg focus:ring-primary focus:border-primary text-sm shadow-sm"
+                                   onchange="this.form.submit()">
+                            <button type="submit" class="absolute left-3 top-2.5 text-gray-400 hover:text-primary transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sort Order -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+                        <select name="sortOrder" class="w-full px-3 py-2 border border-yellow-200 rounded-lg focus:ring-primary focus:border-primary text-sm shadow-sm" onchange="this.form.submit()">
+                            <option value="">Newest</option>
+                            <option value="price_asc" @(sortOrder == "price_asc" ? "selected" : "")>Price: Low to High</option>
+                            <option value="price_desc" @(sortOrder == "price_desc" ? "selected" : "")>Price: High to Low</option>
+                            <option value="rating" @(sortOrder == "rating" ? "selected" : "")>Highest Rating</option>
+                        </select>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price Range (VND)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" min="0" name="minPrice" value="@minPrice" placeholder="Min" class="w-full px-3 py-2 border border-yellow-200 rounded-lg text-sm shadow-sm" onchange="this.form.submit()">
+                            <input type="number" min="0" name="maxPrice" value="@maxPrice" placeholder="Max" class="w-full px-3 py-2 border border-yellow-200 rounded-lg text-sm shadow-sm" onchange="this.form.submit()">
+                        </div>
+                    </div>
+
+                    <!-- Area Range -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Area (m²)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" min="0" name="minArea" value="@minArea" placeholder="Min" class="w-full px-3 py-2 border border-yellow-200 rounded-lg text-sm shadow-sm" onchange="this.form.submit()">
+                            <input type="number" min="0" name="maxArea" value="@maxArea" placeholder="Max" class="w-full px-3 py-2 border border-yellow-200 rounded-lg text-sm shadow-sm" onchange="this.form.submit()">
+                        </div>
+                    </div>
+
+                    <!-- Utilities -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
+                        <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                            @if (utilities != null)
+                            {
+                                foreach (var util in utilities)
+                                {
+                                    bool isChecked = selectedUtils != null && selectedUtils.Contains(util.UtilityID);
+                                    <label class="flex items-center space-x-2 cursor-pointer hover:bg-yellow-50 p-1 rounded transition">
+                                        <input type="checkbox" name="selectedUtilities" value="@util.UtilityID" 
+                                               @(isChecked ? "checked" : "") 
+                                               class="rounded border-yellow-300 text-primary focus:ring-primary w-4 h-4"
+                                               onchange="this.form.submit()">
+                                        <span class="text-sm text-gray-600">@util.UtilityName</span>
+                                    </label>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div class="lg:col-span-3">
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-yellow-600">Available Rooms</h2>
+                    <span class="text-sm text-gray-500">Found @ViewBag.TotalItems results</span>
+                </div>
+
+
+                <style>
+                    /* Room Image Zoom Effect */
+                    .room-card:hover .room-img {
+                        transform: scale(1.1);
+                    }
+                </style>
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-20 bg-white rounded-xl shadow-sm border border-yellow-100">
+                        <div class="w-20 h-20 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-400">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900">No rooms found</h3>
+                        <p class="text-gray-500 mt-1">Please try again with different filters</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach (var item in Model)
+                        {
+                            <!-- Added 'room-card' class for custom hover target -->
+                            <div class="room-card bg-white rounded-xl shadow-md hover:shadow-xl transition group overflow-hidden border border-yellow-200 flex flex-col cursor-pointer">
+                                <!-- Image Container -->
+                                <div class="relative h-48 bg-gray-200 overflow-hidden">
+                                    @{
+                                        var mainImg = item.RoomImages.FirstOrDefault(i => i.IsMainImage == true) ?? item.RoomImages.FirstOrDefault();
+                                        string imgUrl = mainImg != null ? mainImg.ImageUrl : "https://placehold.co/600x400?text=No+Image";
+                                    }
+                                    <!-- Added 'room-img' class -->
+                                    <img src="@imgUrl" alt="@item.Title" class="room-img w-full h-full object-cover transition duration-500" onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=No+Image';">
+                                    
+                                    <div class="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded shadow z-10">
+                                        Available
+                                    </div>
+                                    
+                                </div>
+                                
+                                <!-- Content -->
+                                <div class="p-5 flex-1 flex flex-col">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h3 class="font-bold text-gray-800 text-lg line-clamp-1 group-hover:text-primary transition" title="@item.Title">
+                                            @item.Title - Room @item.RoomNumber
+                                        </h3>
+                                    </div>
+                                    
+                                    <p class="text-gray-500 text-sm mb-3 flex items-center">
+                                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        07 Đoàn Trần Nghiệp, Vĩnh Phước, Nha Trang
+                                    </p>
+                                    
+                                    <div class="flex items-center space-x-4 mb-3 text-sm text-gray-600">
+                                        <span class="flex items-center">
+                                            <svg class="w-4 h-4 mr-1 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                                            </svg>
+                                            @item.Area m²
+                                        </span>
+                                        <span class="flex items-center">
+                                            <svg class="w-4 h-4 mr-1 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                            </svg>
+                                            @(item.MaxOccupancy ?? 2) guests
+                                        </span>
+                                    </div>
+
+                                    @if (item.RoomUtilities != null && item.RoomUtilities.Any())
+                                    {
+                                        <div class="flex flex-wrap gap-1 mb-4">
+                                            @foreach (var util in item.RoomUtilities.Take(3))
+                                            {
+                                                if (util.Utilities != null)
+                                                {
+                                                    <span class="px-2 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] font-bold rounded-full border border-yellow-100">
+                                                        @util.Utilities.UtilityName
+                                                    </span>
+                                                }
+                                            }
+                                            @if (item.RoomUtilities.Count > 3)
+                                            {
+                                                <span class="text-[10px] text-gray-400 self-center">+@(item.RoomUtilities.Count - 3)</span>
+                                            }
+                                        </div>
+                                    }
+                                    
+                                    <div class="mt-auto pt-4 border-t border-gray-100">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-lg font-bold text-primary">
+                                                @item.Price.ToString("#,##0") đ
+                                                <span class="text-xs font-normal text-gray-500">/month</span>
+                                            </span>
+                                            <div class="flex items-center text-yellow-400 text-sm">
+                                                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                                <span class="ml-1 font-medium text-gray-600">
+                                                    @(item.Reviews.Any() ? Math.Round(item.Reviews.Average(r => r.Rating), 1).ToString() : "New")
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <a href="@Url.Action("RoomDetails", "Guest_65133295", new { id = item.RoomID })" class="block w-full text-center bg-yellow-50 text-primary hover:bg-primary hover:text-white font-bold py-2 rounded-lg transition duration-300">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    if (totalPages > 1)
+                    {
+                        <div class="mt-10 flex justify-center space-x-2">
+                             <!-- input to hold page value -->
+                            <input type="hidden" name="page" id="pageInput" value="@currentPage" />
+
+                            <!-- First -->
+                            @if (currentPage > 1)
+                            {
+                                <button type="button" onclick="goToPage(1)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-yellow-50 hover:text-primary transition" title="First page">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+                                </button>
+                            }
+
+                            <!-- Previous -->
+                            @if (currentPage > 1)
+                            {
+                                <button type="button" onclick="goToPage(@(currentPage - 1))" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-yellow-50 hover:text-primary transition" title="Previous page">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                            }
+
+                            <!-- Dynamic Pages (Window of 5) -->
+                            @{
+                                int startPage = Math.Max(1, currentPage - 2);
+                                int endPage = Math.Min(totalPages, startPage + 4);
+                                if (endPage - startPage < 4)
+                                {
+                                    startPage = Math.Max(1, endPage - 4);
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                if (i == currentPage)
+                                {
+                                    <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold shadow-md">@i</span>
+                                }
+                                else
+                                {
+                                    <button type="button" onclick="goToPage(@i)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-yellow-50 hover:text-primary transition">@i</button>
+                                }
+                            }
+
+                            <!-- Next -->
+                            @if (currentPage < totalPages)
+                            {
+                                <button type="button" onclick="goToPage(@(currentPage + 1))" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-yellow-50 hover:text-primary transition" title="Next page">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            }
+
+                            <!-- Last -->
+                            @if (currentPage < totalPages)
+                            {
+                                <button type="button" onclick="goToPage(@totalPages)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-yellow-50 hover:text-primary transition" title="Last page">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function goToPage(page) {
+        document.getElementById('pageInput').value = page;
+        document.getElementById('searchForm').submit();
+    }
+</script>

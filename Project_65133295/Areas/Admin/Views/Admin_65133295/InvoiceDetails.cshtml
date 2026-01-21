@@ -1,0 +1,181 @@
+@model Project_65133295.Models.Payments
+
+@{
+    ViewBag.Title = "Invoice Details #" + Model.InvoiceNumber;
+    ViewBag.PageTitle = "Invoice Details";
+    ViewBag.PageDescription = "Detailed information on payment items for " + Model.PaymentDate.ToString("MM/yyyy");
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="">
+    <!-- Breadcrumb/Back -->
+    <div class="mb-6">
+        <a href="@Url.Action("CreateMonthlyInvoices")" class="inline-flex items-center text-sm text-gray-500 hover:text-yellow-600 transition-colors">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Invoice List
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Header Hóa đơn -->
+        <div class="p-8 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <div class="flex items-center space-x-3 mb-1">
+                    <h2 class="text-2xl font-black text-gray-900">INVOICE #@Model.InvoiceNumber</h2>
+                    @{
+                        string statusClass = "bg-gray-100 text-gray-600";
+                        string statusLabel = Model.PaymentStatus;
+
+                        if (statusLabel == "Paid")
+                        {
+                            statusClass = "bg-green-100 text-green-700 border border-green-200";
+                            statusLabel = "Đã thanh toán";
+                        }
+                        else if (statusLabel == "Pending")
+                        {
+                            statusClass = "bg-yellow-100 text-yellow-700 border border-yellow-200";
+                            statusLabel = "Chờ thanh toán";
+                        }
+                        else if (statusLabel == "Overdue")
+                        {
+                            statusClass = "bg-red-100 text-red-700 border border-red-200";
+                            statusLabel = "Quá hạn";
+                        }
+                    }
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider @statusClass">
+                        @statusLabel
+                    </span>
+                </div>
+                <p class="text-gray-500 text-sm">Ngày tạo: @(Model.CreatedAt.HasValue ? Model.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")</p>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="window.print()" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm flex items-center text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2-2v4a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9v4a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    Print Invoice
+                </button>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <!-- Thông tin hai bên -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+                <!-- Khách thuê & Phòng -->
+                <div>
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Tenant Information</h3>
+                    <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center text-white font-black text-xl">
+                                @(Model.Users1?.FirstName?.Substring(0, 1) ?? "U")
+                            </div>
+                            <div>
+                                <p class="font-black text-gray-900">@(Model.Users1 != null ? Model.Users1.FirstName + " " + Model.Users1.LastName : "N/A")</p>
+                                <p class="text-xs text-gray-500">@(Model.Users1?.Email ?? "N/A")</p>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-gray-200/50 space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Phòng:</span>
+                                <span class="font-bold text-gray-900">P.@(Model.Contracts?.Bookings?.Rooms?.RoomNumber ?? "N/A")</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Hợp đồng:</span>
+                                <span class="font-bold text-yellow-600">#@(Model.Contracts?.ContractNumber ?? "N/A")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thời hạn & Thanh toán -->
+                <div>
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Payment Due & Terms</h3>
+                    <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500">Kỳ thanh toán</span>
+                            <span class="text-sm font-bold text-gray-900">Tháng @Model.PaymentDate.ToString("MM/yyyy")</span>
+                        </div>
+                        <div class="h-px bg-gray-200/50"></div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500">Hạn chót</span>
+                            <span class="text-sm font-bold @(Model.DueDate < DateTime.Now && Model.PaymentStatus == "Pending" ? "text-red-600" : "text-gray-900")">
+                                @(Model.DueDate?.ToString("dd/MM/yyyy") ?? "-")
+                            </span>
+                        </div>
+                        @if (Model.PaidDate.HasValue)
+                        {
+                            <div class="h-px bg-gray-200/50"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-green-600 font-bold">Ngày đã thanh toán</span>
+                                <span class="text-sm font-bold text-green-700">@Model.PaidDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng kê chi tiết phí -->
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Fee Breakdown</h3>
+            <div class="border border-gray-100 rounded-2xl overflow-hidden mb-8 shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-500 text-[10px] font-black uppercase tracking-widest">
+                        <tr>
+                            <th class="px-6 py-4">Mô tả khoản phí</th>
+                            <th class="px-6 py-4 text-right">Số tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @if (Model.Fees != null && Model.Fees.Any())
+                        {
+                            foreach (var fee in Model.Fees)
+                            {
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-gray-900">@fee.FeeName</div>
+                                        @if (!string.IsNullOrEmpty(fee.Description))
+                                        {
+                                            <div class="text-[11px] text-gray-400">@fee.Description</div>
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-black text-gray-900">
+                                        @fee.FeeAmount.ToString("#,##0")đ
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="px-6 py-4 font-bold text-gray-900">Tiền phòng (Cơ bản)</td>
+                                <td class="px-6 py-4 text-right font-black text-gray-900">@Model.Amount.ToString("#,##0")đ</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="bg-yellow-50/50">
+                        <tr>
+                            <td class="px-6 py-6 text-sm font-black text-gray-900 uppercase tracking-widest text-right">Tổng cộng thanh toán</td>
+                            <td class="px-6 py-6 text-right">
+                                <span class="text-2xl font-black text-yellow-600">@Model.Amount.ToString("#,##0")đ</span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer Audit -->
+        <div class="bg-gray-50 p-6 border-t border-gray-100 flex items-center justify-between">
+            <div class="flex items-center text-xs text-gray-400">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Last Updated: @(Model.UpdatedAt.HasValue ? Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")
+            </div>
+            <div class="text-[10px] text-gray-300 font-medium uppercase tracking-widest">
+                ThanhThao Stay Management System
+            </div>
+        </div>
+    </div>
+</div>

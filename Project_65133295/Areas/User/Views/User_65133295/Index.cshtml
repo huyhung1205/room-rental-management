@@ -1,0 +1,196 @@
+﻿
+@{
+    ViewBag.Title = "Dashboard";
+    ViewBag.PageTitle = "Overview";
+    ViewBag.PageDescription = "Welcome back to the system";
+    Layout = "~/Areas/User/Views/Shared/_LayoutUser.cshtml";
+}
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    
+    <!-- Total Bookings -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+        <div>
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Bookings</p>
+            <h3 class="text-2xl font-bold text-gray-800 mt-1">@ViewBag.TotalBookings</h3>
+        </div>
+        <div class="p-3 bg-blue-50 rounded-lg">
+            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Pending Bookings -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+        <div>
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Pending Approval</p>
+            <h3 class="text-2xl font-bold text-yellow-600 mt-1">@ViewBag.PendingBookings</h3>
+        </div>
+        <div class="p-3 bg-yellow-50 rounded-lg">
+            <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Unpaid Invoices -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+        <div>
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Unpaid Invoices</p>
+            <h3 class="text-2xl font-bold text-red-600 mt-1">@ViewBag.UnpaidInvoices</h3>
+        </div>
+        <div class="p-3 bg-red-50 rounded-lg">
+            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Total Spent -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between">
+        <div>
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Spent</p>
+            <h3 class="text-2xl font-bold text-green-600 mt-1">
+                @if (ViewBag.TotalSpent != null)
+                {
+                    @(string.Format("{0:N0}", ViewBag.TotalSpent))
+                }
+                else
+                {
+                    @:0
+                }
+                 đ
+            </h3>
+        </div>
+        <div class="p-3 bg-green-50 rounded-lg">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity & Invoices -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
+    <!-- Recent Bookings -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-800">Recent Bookings</h3>
+            <a href="@Url.Action("MyBookings", "User_65133295")" class="text-sm text-primary hover:text-primary-dark font-medium">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3">Room</th>
+                        <th class="px-6 py-3">Booked Date</th>
+                        <th class="px-6 py-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @if (ViewBag.RecentBookings != null)
+                    {
+                        foreach (var item in ViewBag.RecentBookings)
+                        {
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-medium text-gray-900">
+                                    @(item.Rooms != null ? item.Rooms.RoomNumber : "N/A")
+                                </td>
+                                <td class="px-6 py-4 text-gray-500">
+                                    @((item.CreatedAt != null) ? item.CreatedAt.ToString("dd/MM/yyyy") : "N/A")
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if (item.BookingStatus == "Pending")
+                                    {
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                                    }
+                                    else if (item.BookingStatus == "Approved")
+                                    {
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Approved</span>
+                                    }
+                                    else if (item.BookingStatus == "Rejected")
+                                    {
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Rejected</span>
+                                    }
+                                    else if (item.BookingStatus == "Cancelled")
+                                    {
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Cancelled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">@item.BookingStatus</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-center text-gray-500">No data available</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Invoices -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-800">Recent Invoices</h3>
+            <a href="@Url.Action("MyInvoices", "User_65133295")" class="text-sm text-primary hover:text-primary-dark font-medium">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3">Invoice</th>
+                        <th class="px-6 py-3">Amount</th>
+                        <th class="px-6 py-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @if (ViewBag.RecentInvoices != null)
+                    {
+                        foreach (var item in ViewBag.RecentInvoices)
+                        {
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-medium text-gray-900">
+                                    #@item.PaymentID
+                                    <div class="text-xs text-gray-500 mt-0.5">@item.PaymentDate.ToString("dd/MM/yyyy")</div>
+                                </td>
+                                <td class="px-6 py-4 font-semibold text-gray-700">
+                                    @((item.Amount != null) ? string.Format("{0:N0}", item.Amount) : "0") đ
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if (item.PaymentStatus == "Pending")
+                                    {
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Unpaid</span>
+                                    }
+                                    else if (item.PaymentStatus == "Paid")
+                                    {
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Paid</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">@item.PaymentStatus</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-center text-gray-500">No data available</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

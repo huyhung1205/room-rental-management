@@ -1,0 +1,355 @@
+﻿@model IEnumerable<Project_65133295.Models.Users>
+
+@{
+    ViewBag.Title = "User Management";
+    ViewBag.PageTitle = "User Management";
+    ViewBag.PageDescription = "View list, search and manage member accounts";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    
+    int currentPage = ViewBag.Page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalUsers = ViewBag.TotalUsers ?? 0;
+    string query = ViewBag.Query as string ?? "";
+    bool? currentRole = ViewBag.CurrentRole as bool?;
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+}
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- Header -->
+    <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <p class="text-sm text-gray-500 mt-1">Total: <span class="font-semibold text-primary">@totalUsers</span> users</p>
+        </div>
+        
+        <!-- Search & Filter -->
+        <form action="@Url.Action("ManageUsers")" method="get" class="flex flex-col sm:flex-row gap-3 relative flex-1 max-w-2xl justify-end">
+            <input type="hidden" name="page" value="1" />
+            
+            <!-- Role Filter -->
+            <select name="role" class="block w-full sm:w-40 border border-gray-200 rounded-xl py-2 px-3 bg-gray-50 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary transition-all" onchange="this.form.submit()">
+                <option value="" @(!currentRole.HasValue ? "selected" : "")>All Roles</option>
+                <option value="true" @(currentRole == true ? "selected" : "")>User</option>
+                <option value="false" @(currentRole == false ? "selected" : "")>Admin</option>
+            </select>
+
+            <!-- Search Input -->
+            <div class="relative w-full sm:w-64">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </span>
+                <input type="text" name="query" value="@query" placeholder="Search by email, name..." 
+                       class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all">
+            </div>
+            
+            <button type="submit" class="hidden sm:block px-4 py-2 border border-transparent shadow-sm text-sm font-bold rounded-xl text-white bg-primary hover:bg-primary-dark transition-all">
+                Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">User</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Liên hệ</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Registered Date</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="relative px-6 py-3">
+                        <span class="sr-only">Actions</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var user in Model)
+                    {
+                        bool isActive = user.IsActive ?? true;
+                        bool isUserRole = user.Role == true; // True is User, False is Admin based on user feedback
+                        
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
+                                            <span class="text-white font-bold text-sm">@(user.FirstName?.Substring(0, 1).ToUpper() ?? user.Email?.Substring(0, 1).ToUpper() ?? "?")</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-bold text-gray-900">@(((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim())</div>
+                                        <div class="text-xs text-gray-500">@user.Email</div>
+                                        @if (!isUserRole) {
+                                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">Admin</span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">@(user.PhoneNumber ?? "Not updated")</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @(user.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if (isActive)
+                                {
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">
+                                        Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">
+                                        Locked
+                                    </span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end items-center space-x-2">
+                                    @if (isActive)
+                                    {
+                                        <button onclick="toggleLock(@user.UserID, '@user.Email', false)" 
+                                                class="text-gray-400 hover:text-yellow-600 transition-colors" 
+                                                title="Khóa tài khoản">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button onclick="toggleLock(@user.UserID, '@user.Email', true)" 
+                                                class="text-gray-400 hover:text-green-600 transition-colors" 
+                                                title="Mở khóa tài khoản">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+                                        </button>
+                                    }
+                                    
+                                    @if (isUserRole) 
+                                    {
+                                        <button onclick="deleteUser(@user.UserID, '@user.Email')" 
+                                                class="text-gray-400 hover:text-red-600 transition-colors" 
+                                                title="Xóa người dùng">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="px-6 py-20 text-center">
+                            <div class="text-gray-400">
+                                <svg class="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                <p class="text-gray-500">@(string.IsNullOrEmpty(query) ? "Chưa có người dùng nào" : "Không tìm thấy kết quả phù hợp")</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <form id="paginationForm" action="@Url.Action("ManageUsers")" method="get">
+                <input type="hidden" name="query" value="@query" />
+                <input type="hidden" name="page" id="pageInput" value="@currentPage" />
+                @if (currentRole.HasValue) {
+                    <input type="hidden" name="role" value="@currentRole.Value.ToString().ToLower()" />
+                }
+                
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-500">
+                        Trang <span class="font-semibold text-gray-700">@currentPage</span> / <span class="font-semibold text-gray-700">@totalPages</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+
+                        <!-- First -->
+                        @if (currentPage > 1)
+                        {
+                            <button type="button" onclick="goToPage(1)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-yellow-50 hover:text-primary transition" title="Trang đầu">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+                            </button>
+                        }
+                        
+                        <!-- Prev -->
+                        @if (currentPage > 1)
+                        {
+                            <button type="button" onclick="goToPage(@(currentPage - 1))" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-yellow-50 hover:text-primary transition" title="Trang trước">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                            </button>
+                        }
+                        
+                        <!-- Page Numbers (show max 5 pages) -->
+                        @{
+                            int startPage = Math.Max(1, currentPage - 2);
+                            int endPage = Math.Min(totalPages, currentPage + 2);
+                            
+                            if (endPage - startPage < 4)
+                            {
+                                if (currentPage <= 3)
+                                {
+                                    endPage = Math.Min(totalPages, 5);
+                                }
+                                else
+                                {
+                                    startPage = Math.Max(1, endPage - 4);
+                                }
+                            }
+
+                            for (int i = startPage; i <= endPage; i++)
+                            {
+                                if (i == currentPage)
+                                {
+                                    <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold shadow-md">@i</span>
+                                }
+                                else
+                                {
+                                    <button type="button" onclick="goToPage(@i)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-600 hover:bg-yellow-50 hover:text-primary transition">@i</button>
+                                }
+                            }
+                        }
+                        
+                        <!-- Next -->
+                        @if (currentPage < totalPages)
+                        {
+                            <button type="button" onclick="goToPage(@(currentPage + 1))" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-yellow-50 hover:text-primary transition" title="Trang sau">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                        }
+                        
+                        <!-- Last -->
+                        @if (currentPage < totalPages)
+                        {
+                            <button type="button" onclick="goToPage(@totalPages)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500 hover:bg-yellow-50 hover:text-primary transition" title="Trang cuối">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+    }
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function goToPage(page) {
+            document.getElementById('pageInput').value = page;
+            document.getElementById('paginationForm').submit();
+        }
+
+        function toggleLock(userId, userEmail, isUnlocking) {
+            const action = isUnlocking ? 'unlock' : 'lock';
+            const title = isUnlocking ? 'Unlock account?' : 'Lock account?';
+            const confirmText = isUnlocking ? 'Unlock' : 'Lock';
+            const confirmColor = isUnlocking ? '#16a34a' : '#ef4444';
+
+            Swal.fire({
+                title: title,
+                html: `
+                    <p class="text-gray-600 mb-4">Tài khoản: <strong>${userEmail}</strong></p>
+                    <input type="text" id="reasonInput" class="swal2-input" placeholder="Nhập lý do ${action}..." />
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: confirmColor,
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Hủy',
+                preConfirm: () => {
+                    const reason = document.getElementById('reasonInput').value;
+                    if (!reason || reason.trim() === '') {
+                        Swal.showValidationMessage('Vui lòng nhập lý do!');
+                        return false;
+                    }
+                    return reason;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("ToggleUserLock", "Admin_65133295")',
+                        type: 'POST',
+                        data: {
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                            userId: userId,
+                            reason: result.value
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    title: 'Thành công!',
+                                    text: res.message,
+                                    icon: 'success',
+                                    confirmButtonColor: '#facc15'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Thất bại',
+                                    text: res.message,
+                                    icon: 'error',
+                                    confirmButtonColor: '#facc15'
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire({
+                                title: 'Lỗi',
+                                text: 'Không thể kết nối đến máy chủ',
+                                icon: 'error',
+                                confirmButtonColor: '#facc15'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        function deleteUser(userId, userEmail) {
+            Swal.fire({
+                title: 'Delete user?',
+                html: `Are you sure you want to delete account <strong>${userEmail}</strong>?<br><span class="text-red-500 text-sm">This action cannot be undone!</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Delete Now',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteUser", "Admin_65133295")',
+                        type: 'POST',
+                        data: {
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                            id: userId
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire('Đã xóa!', 'Tài khoản đã được gỡ khỏi hệ thống.', 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Thất bại', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,33 @@
+# .NET Core / .NET 5+
+appsettings.json
+appsettings.*.json
+Secrets.json
+
+# Visual Studio
+[Dd]ebug/
+[Rr]elease/
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vscode/
+[Tt]humbs.db
+[Dd]esktop.ini
+
+# Logs và tạm
+*.log
+*.tmp
+*.cache
+
+# Upload files (ảnh đại diện, file đính kèm thí sinh)
+wwwroot/uploads/
+wwwroot/files/
+
+# Node.js (nếu có)
+node_modules/
+package-lock.json
+
+# Test
+TestResults/

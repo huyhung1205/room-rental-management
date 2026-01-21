@@ -1,0 +1,336 @@
+﻿@using Project_65133295.Models
+@model IEnumerable<Bookings>
+
+@{
+    ViewBag.Title = "Booking History";
+    ViewBag.PageTitle = "My Booking Requests";
+    ViewBag.PageDescription = "Track the status of your booking requests";
+    Layout = "~/Areas/User/Views/Shared/_LayoutUser.cshtml";
+}
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+        <a href="@Url.Action("SearchAndBook", "User_65133295")" class="text-sm bg-yellow-50 text-primary px-3 py-1.5 rounded-lg hover:bg-yellow-100 font-medium transition">
+            + Book Another Room
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="px-6 pt-4">
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700">
+                            @TempData["SuccessMessage"]
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
+                <tr>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Booking ID</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Room</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Created Date</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Expected Check-in</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Duration</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Deposit Amount</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Status</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Notes/Reason</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center">Details</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr class="hover:bg-gray-50/50 transition duration-150">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900 text-center">
+                                #@item.BookingID
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700 text-center">
+                                @if (item.Rooms != null)
+                                {
+                                    <div class="font-medium text-primary">Room @item.Rooms.RoomNumber</div>
+                                    <div class="text-xs text-gray-500">@item.Rooms.Title</div>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400">N/A</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 text-center">
+                                @(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "-")
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 text-center">
+                                @item.CheckInDate.ToString("dd/MM/yyyy")
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 text-center">
+                                @item.Duration Month
+                            </td>
+                            <td class="px-6 py-4 text-sm text-center font-medium text-yellow-600">
+                                @(item.DepositAmount.HasValue ? item.DepositAmount.Value.ToString("#,##0") + " đ" : "Not Set")
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @{
+                                    string statusClass = "bg-gray-100 text-gray-600";
+                                    string statusLabel = item.BookingStatus;
+                                    
+                                    if (statusLabel == "Pending")
+                                    {
+                                        statusClass = "bg-yellow-100 text-yellow-700 border border-yellow-200";
+                                        statusLabel = "Pending";
+                                    }
+                                    else if (statusLabel == "Approved")
+                                    {
+                                        statusClass = "bg-green-100 text-green-700 border border-green-200";
+                                        statusLabel = "Approved";
+                                    }
+                                    else if (statusLabel == "Rejected")
+                                    {
+                                        statusClass = "bg-red-100 text-red-700 border border-red-200";
+                                        statusLabel = "Rejected";
+                                    }
+                                }
+                                <span class="px-3 py-1 rounded-full text-xs font-bold @statusClass">
+                                    @statusLabel
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if (!string.IsNullOrEmpty(item.Notes))
+                                {
+                                    <button type="button" 
+                                            onclick="openNotesModal('@HttpUtility.JavaScriptStringEncode(item.Notes)')"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                            title="View notes/reason">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-300">-</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-center flex justify-center space-x-2">
+                                <a href="@Url.Action("RoomDetails", "User_65133295", new { id = item.RoomID })" 
+                                   class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                                   title="View details">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </a>
+
+                                @if (item.BookingStatus == "Pending")
+                                {
+                                    <button type="button" 
+                                            onclick="openCancelModal(@item.BookingID, '@(item.Rooms?.RoomNumber ?? "N/A")')"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" 
+                                            title="Cancel booking">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                }
+                                else if (item.BookingStatus == "Approved")
+                                {
+                                    <button type="button" 
+                                            onclick="openCheckoutModal(@item.BookingID, '@(item.Rooms?.RoomNumber ?? "N/A")')"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors" 
+                                            title="Request checkout">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        </svg>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" class="px-6 py-12 text-center text-gray-500 italic">
+                            You don't have any booking requests yet.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Custom Cancellation Modal -->
+<div id="cancelModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen p-4 text-center">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeCancelModal()"></div>
+        <div class="inline-block align-middle bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-md w-full border border-red-100 relative z-10">
+            <form id="cancelForm" action="" method="post">
+                @Html.AntiForgeryToken()
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="flex flex-col items-center">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <div class="text-center w-full">
+                            <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                                Confirm Cancellation Request
+                            </h3>
+                            <div class="mt-2 text-center">
+                                <p class="text-sm text-gray-500">
+                                    Are you sure you want to cancel the booking request for <span id="cancelRoomNo" class="font-bold text-red-600"></span>? 
+                                    This action cannot be undone.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-6 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm transition transform hover:scale-105">
+                        Confirm Cancellation
+                    </button>
+                    <button type="button" onclick="closeCancelModal()" class="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Checkout Request Modal -->
+<div id="checkoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen p-4 text-center">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeCheckoutModal()"></div>
+        <div class="inline-block align-middle bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-md w-full border border-orange-100 relative z-10">
+            <form id="checkoutForm" action="" method="post">
+                @Html.AntiForgeryToken()
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="flex flex-col items-center">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 mb-4">
+                            <svg class="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </div>
+                        <div class="text-center w-full">
+                            <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                                Confirm Checkout Request
+                            </h3>
+                            <div class="mt-2 text-center">
+                                <p class="text-sm text-gray-500">
+                                    Do you want to submit a checkout request for <span id="checkoutRoomNo" class="font-bold text-orange-600"></span>? 
+                                    The management board will receive the notification and contact you to complete the process.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-3 text-center">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-6 py-2 bg-orange-500 text-base font-bold text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:w-auto sm:text-sm transition transform hover:scale-105">
+                        Submit Request
+                    </button>
+                    <button type="button" onclick="closeCheckoutModal()" class="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Notes/Reason Modal -->
+<div id="notesModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen p-4 text-center">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeNotesModal()"></div>
+        <div class="inline-block align-middle bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-md w-full border border-blue-100 relative z-10">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="flex flex-col items-center">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="text-center w-full">
+                        <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                            Notes / Reason for Rejection
+                        </h3>
+                        <div class="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
+                            <p id="notesContent" class="text-sm text-gray-600 whitespace-pre-line italic"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 flex justify-center border-t border-gray-100">
+                <button type="button" onclick="closeNotesModal()" class="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openNotesModal(content) {
+        document.getElementById('notesContent').innerText = content || "No notes available.";
+        document.getElementById('notesModal').classList.remove('hidden');
+    }
+
+    function closeNotesModal() {
+        document.getElementById('notesModal').classList.add('hidden');
+    }
+
+    function openCancelModal(bookingId, roomNo) {
+        const modal = document.getElementById('cancelModal');
+        const form = document.getElementById('cancelForm');
+        const roomSpan = document.getElementById('cancelRoomNo');
+        
+        // Construct the URL using a template or manually
+        // item.BookingID is the 'id' parameter
+        form.action = '@Url.Action("CancelBooking", "User_65133295")/' + bookingId;
+        roomSpan.innerText = 'Room ' + roomNo;
+        
+        modal.classList.remove('hidden');
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').classList.add('hidden');
+    }
+
+    function openCheckoutModal(bookingId, roomNo) {
+        const modal = document.getElementById('checkoutModal');
+        const form = document.getElementById('checkoutForm');
+        const roomSpan = document.getElementById('checkoutRoomNo');
+        
+        form.action = '@Url.Action("RequestCheckout", "User_65133295")/' + bookingId;
+        roomSpan.innerText = 'Room ' + roomNo;
+        
+        modal.classList.remove('hidden');
+    }
+
+    function closeCheckoutModal() {
+        document.getElementById('checkoutModal').classList.add('hidden');
+    }
+
+    // Close on escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeCancelModal();
+            closeCheckoutModal();
+        }
+    });
+</script>

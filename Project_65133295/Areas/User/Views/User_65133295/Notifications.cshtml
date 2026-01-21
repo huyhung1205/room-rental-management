@@ -1,0 +1,271 @@
+﻿@model IEnumerable<Project_65133295.Models.Notifications>
+
+@{
+    ViewBag.Title = "My Notifications";
+    ViewBag.PageTitle = "System Notifications";
+    ViewBag.PageDescription = "Updates on your booking, contract, and invoice status";
+    Layout = "~/Areas/User/Views/Shared/_LayoutUser.cshtml";
+}
+
+<div class="">
+    <!-- Header với nút Clear All -->
+    <div class="flex justify-between items-center mb-6">
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="flex space-x-3">
+                @if (Model.Any(n => n.IsRead != true))
+                {
+                    <button onclick="confirmClearAll()" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-white font-bold rounded-xl transition-all shadow-sm flex items-center text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Mark All as Read
+                    </button>
+                }
+                <button onclick="confirmDeleteAll()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-sm flex items-center text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Delete All
+                </button>
+            </div>
+        }
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="space-y-4">
+            @foreach (var item in Model)
+            {
+                <div id="notif-@item.NotificationID" 
+                     class="group relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md hover:border-yellow-200 @(item.IsRead != true ? "bg-gradient-to-r from-yellow-50/50 to-white border-l-4 border-l-yellow-400" : "")">
+                    
+                    <div class="flex items-start space-x-4">
+                        <!-- Icon Column -->
+                        <div class="flex-shrink-0 mt-1">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center @(item.IsRead == true ? "bg-gray-50 text-gray-400" : "bg-yellow-100 text-yellow-600 shadow-sm")">
+                                @if (item.Type == "Approval")
+                                {
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                }
+                                else if (item.Type == "Invoice")
+                                {
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                }
+                                else if (item.Type == "Rejection")
+                                {
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                }
+                                else
+                                {
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Content Column -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="text-base font-bold text-gray-900 truncate pr-4">@item.Title</h3>
+                                <span class="text-xs text-gray-400 whitespace-nowrap">@item.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <p class="text-sm text-gray-600 leading-relaxed mb-4">@item.Message</p>
+                            
+                            <div class="flex items-center space-x-4">
+                                @if (item.RelatedEntityType == "Booking")
+                                {
+                                    <a href="javascript:void(0)" onclick="handleAction(@item.NotificationID, '@Url.Action("MyBookings")')" class="text-xs font-bold text-yellow-600 hover:text-yellow-700 underline underline-offset-4">View Booking Request</a>
+                                }
+                                else if (item.RelatedEntityType == "Invoice")
+                                {
+                                    <a href="javascript:void(0)" onclick="handleAction(@item.NotificationID, '@Url.Action("InvoiceDetails", new { id = item.RelatedEntityID })')" class="text-xs font-bold text-yellow-600 hover:text-yellow-700 underline underline-offset-4">Pay Now</a>
+                                }
+
+                                @if (item.IsRead != true)
+                                {
+                                    <button onclick="markRead(@item.NotificationID)" 
+                                            class="btn-mark-read text-[10px] uppercase tracking-wider font-black text-gray-400 hover:text-yellow-600 transition-colors">
+                                        Mark as Read
+                                    </button>
+                                }
+                                <button onclick="deleteNotification(@item.NotificationID)" 
+                                        class="text-[10px] uppercase tracking-wider font-black text-gray-400 hover:text-red-500 transition-colors flex items-center">
+                                    <svg class="w-3.4 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unread dot -->
+                    @if (item.IsRead != true)
+                    {
+                        <div class="absolute top-6 right-6 w-3 h-3 bg-yellow-400 rounded-full animate-pulse shadow-sm shadow-yellow-400/50"></div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-3xl p-16 text-center border border-dashed border-gray-200">
+            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">No New Notifications</h3>
+            <p class="text-gray-500 max-w-sm mx-auto">All updates about your bookings and invoices will appear here.</p>
+        </div>
+    }
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmClearAll() {
+            Swal.fire({
+                title: 'Confirm',
+                text: 'Mark all notifications as read?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#FACC15',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    clearAllNotifications();
+                }
+            });
+        }
+
+        function clearAllNotifications() {
+            $.ajax({
+                url: '@Url.Action("ClearAllNotifications")',
+                type: 'POST',
+                success: function(res) {
+                    if (res.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Marked ' + res.count + ' notification(s) as read.',
+                            icon: 'success',
+                            confirmButtonColor: '#FACC15'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    }
+                }
+            });
+        }
+
+        function confirmDeleteAll() {
+            Swal.fire({
+                title: 'Confirm deletion?',
+                text: 'All notifications will be permanently deleted!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Delete permanently',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteAllNotifications")',
+                        type: 'POST',
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: 'All notifications have been cleared.',
+                                    icon: 'success',
+                                    confirmButtonColor: '#FACC15'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function deleteNotification(id) {
+            Swal.fire({
+                title: 'Delete notification?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteNotification")',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function(res) {
+                            if (res.success) {
+                                $('#notif-' + id).fadeOut(300, function() {
+                                    $(this).remove();
+                                    // If no more notifications, reload to show empty state
+                                    if ($('.group').length === 0) location.reload();
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function handleAction(id, url) {
+            $.ajax({
+                url: '@Url.Action("MarkAsRead")',
+                type: 'POST',
+                data: { id: id },
+                complete: function() {
+                    window.location.href = url;
+                }
+            });
+        }
+
+        function markRead(id) {
+            $.ajax({
+                url: '@Url.Action("MarkAsRead")',
+                type: 'POST',
+                data: { id: id },
+                success: function(res) {
+                    if (res.success) {
+                        const card = $('#notif-' + id);
+                        card.removeClass('bg-gradient-to-r from-yellow-50/50 to-white border-l-yellow-400 border-l-4');
+                        card.find('.animate-pulse').remove();
+                        card.find('.btn-mark-read').fadeOut();
+                        card.find('.w-12').removeClass('bg-yellow-100 text-yellow-600 shadow-sm').addClass('bg-gray-50 text-gray-400');
+                        
+                        // Update global unread badge if exists
+                        updateNotificationBadge();
+                    }
+                }
+            });
+        }
+
+        function updateNotificationBadge() {
+            // This can be expanded to update a navbar badge via AJAX or just decrementing
+            const currentBadge = $('#notif-badge');
+            if (currentBadge.length) {
+                let count = parseInt(currentBadge.text()) || 0;
+                if (count > 0) {
+                    count--;
+                    if (count === 0) currentBadge.remove();
+                    else currentBadge.text(count);
+                }
+            }
+        }
+    </script>
+}

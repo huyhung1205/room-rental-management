@@ -1,0 +1,110 @@
+﻿@using Project_65133295.Models
+@{
+    ViewBag.Title = "Submit Review";
+    ViewBag.PageTitle = "Submit Review";
+    ViewBag.PageDescription = "Share your experience about this room";
+    Layout = "~/Areas/User/Views/Shared/_LayoutUser.cshtml";
+    var room = ViewBag.Room as Rooms;
+}
+
+<div class="">
+    <!-- Room Info Header -->
+    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-8 flex items-center space-x-6">
+        @if (room?.RoomImages != null && room.RoomImages.Any())
+        {
+            <img src="@Url.Content(room.RoomImages.First().ImageUrl)" class="w-24 h-24 rounded-2xl object-cover shadow-sm">
+        }
+        else
+        {
+            <div class="w-24 h-24 bg-gray-100 rounded-2xl flex items-center justify-center">
+                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+        }
+        <div>
+            <h3 class="text-xl font-bold text-gray-900">Room @(room?.RoomNumber)</h3>
+            <p class="text-gray-500 text-sm">@(room?.Title)</p>
+            <div class="mt-2 inline-flex items-center px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.827a1 1 0 00-1.788 0L7.123 5.31l-3.087.449a1 1 0 00-.554 1.706l2.234 2.177-.527 3.075a1 1 0 001.451 1.054L10 12.33l2.76 1.45a1 1 0 001.451-1.054l-.527-3.075 2.234-2.177a1 1 0 00-.554-1.706l-3.087-.449-1.479-2.483z"></path></svg>
+                Verified Guest
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Form -->
+    <div class="bg-white rounded-3xl p-8 shadow-xl border border-yellow-100">
+        <form action="@Url.Action("SubmitReview")" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="roomId" value="@(room?.RoomID)" />
+            
+            <div class="space-y-8">
+                <!-- Star Rating -->
+                <div class="text-center">
+                    <label class="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">How satisfied are you?</label>
+                    <div class="flex justify-center space-x-2">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <button type="button" onclick="setRating(@i)" class="star-btn p-1 transition-all transform hover:scale-125 focus:outline-none" data-value="@i">
+                                <svg id="star-icon-@i" class="w-12 h-12 text-gray-200 fill-current transition-colors" viewBox="0 0 20 20">
+                                    <path d="M10.394 2.827a1 1 0 00-1.788 0L7.123 5.31l-3.087.449a1 1 0 00-.554 1.706l2.234 2.177-.527 3.075a1 1 0 001.451 1.054L10 12.33l2.76 1.45a1 1 0 001.451-1.054l-.527-3.075 2.234-2.177a1 1 0 00-.554-1.706l-3.087-.449-1.479-2.483z"></path>
+                                </svg>
+                            </button>
+                        }
+                    </div>
+                    <input type="hidden" name="rating" id="ratingValue" value="0" required />
+                    <p id="ratingLabel" class="mt-4 text-sm font-bold text-gray-400 italic">Select stars to continue</p>
+                </div>
+
+                <!-- Comment Area -->
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700">Share Your Review</label>
+                    <textarea name="comment" rows="5" required minlength="10"
+                              placeholder="Let people know about this room (space, amenities, location...)"
+                              class="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-yellow-400/20 focus:border-yellow-400 outline-none transition-all placeholder-gray-400"></textarea>
+                    <p class="text-[10px] text-gray-400 italic">Minimum 10 characters.</p>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" id="btnSubmit" disabled
+                        class="w-full py-4 bg-gray-200 text-gray-400 font-black rounded-2xl transition-all flex items-center justify-center space-x-2 cursor-not-allowed">
+                    <span>SUBMIT REVIEW</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function setRating(val) {
+            $('#ratingValue').val(val);
+            
+            // UI Update
+            $('.star-btn').each(function() {
+                const starVal = $(this).data('value');
+                const icon = $(this).find('svg');
+                if (starVal <= val) {
+                    icon.removeClass('text-gray-200').addClass('text-yellow-400');
+                } else {
+                    icon.removeClass('text-yellow-400').addClass('text-gray-200');
+                }
+            });
+
+            // Labels
+            const labels = {
+                1: "Poor",
+                2: "Average",
+                3: "Good",
+                4: "Very Satisfied",
+                5: "Excellent - Will recommend to friends!"
+            };
+            $('#ratingLabel').text(labels[val]).removeClass('text-gray-400').addClass('text-yellow-600');
+
+            // Enable Button
+            const btn = $('#btnSubmit');
+            btn.prop('disabled', false)
+               .removeClass('bg-gray-200 text-gray-400 cursor-not-allowed')
+               .addClass('bg-yellow-400 text-white shadow-lg shadow-yellow-400/30 hover:bg-yellow-500 hover:scale-[1.02] active:scale-95 cursor-pointer');
+        }
+    </script>
+}

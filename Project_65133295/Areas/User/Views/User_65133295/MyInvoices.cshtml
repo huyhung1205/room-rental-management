@@ -1,0 +1,133 @@
+﻿@model IEnumerable<Project_65133295.Models.Payments>
+
+@{
+    ViewBag.Title = "My Invoices";
+    ViewBag.PageTitle = "Invoice Management";
+    ViewBag.PageDescription = "Includes monthly room fees and service charges";
+    Layout = "~/Areas/User/Views/Shared/_LayoutUser.cshtml";
+}
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
+                <tr>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center text-[11px]">Invoice ID</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center text-[11px]">Room</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center text-[11px]">Payment Period</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center text-[11px]">Due Date</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center text-[11px]">Total Amount</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center text-[11px]">Status</th>
+                    <th class="px-6 py-4 font-semibold border-b border-gray-100 text-center text-[11px]">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr class="hover:bg-gray-50/50 transition duration-150">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900 text-center">
+                                <span class="text-xs text-gray-500">#@item.InvoiceNumber</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-700 text-center">
+                                @if (item.Contracts?.Bookings?.Rooms != null)
+                                {
+                                    <div class="font-bold text-primary">Room @item.Contracts.Bookings.Rooms.RoomNumber</div>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 italic">N/A</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 text-center">
+                                @item.PaymentDate.ToString("MM/yyyy")
+                            </td>
+                            <td class="px-6 py-4 text-sm text-center">
+                                @if (item.DueDate.HasValue)
+                                {
+                                    <div class="flex flex-col items-center">
+                                        <span class="@(item.DueDate.Value < DateTime.Now && item.PaymentStatus != "Paid" ? "text-red-600 font-bold" : "text-gray-600")">
+                                            @item.DueDate.Value.ToString("dd/MM/yyyy")
+                                        </span>
+                                        @if (item.DueDate.Value < DateTime.Now && item.PaymentStatus != "Paid")
+                                        {
+                                            <span class="text-[10px] text-red-500 uppercase font-bold">OVERDUE</span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-sm text-center font-bold text-yellow-600">
+                                @item.Amount.ToString("#,##0") đ
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @{
+                                    string statusClass = "bg-gray-100 text-gray-600";
+                                    string statusLabel = item.PaymentStatus;
+
+                                    if (statusLabel == "Paid")
+                                    {
+                                        statusClass = "bg-green-100 text-green-700 border border-green-200";
+                                        statusLabel = "Paid";
+                                    }
+                                    else if (statusLabel == "Pending")
+                                    {
+                                        statusClass = "bg-yellow-100 text-yellow-700 border border-yellow-200";
+                                        statusLabel = "Pending Payment";
+                                    }
+                                    else if (statusLabel == "Failed")
+                                    {
+                                        statusClass = "bg-red-100 text-red-700 border border-red-200";
+                                        statusLabel = "Failed";
+                                    }
+                                }
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold @statusClass">
+                                    @statusLabel
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex justify-center items-center">
+                                    <a href="@Url.Action("InvoiceDetails", "User_65133295", new { id = item.PaymentID })" 
+                                       class="w-10 h-10 rounded-full bg-yellow-50 text-yellow-600 hover:bg-yellow-400 hover:text-white transition-all duration-300 flex items-center justify-center shadow-sm" 
+                                       title="View Details & Pay">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-500 italic">
+                            You don't have any invoices at this time. Invoices will appear after your contract is signed.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg shadow-sm">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <svg class="h-6 w-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm text-yellow-700">
+                <span class="font-bold">Important Note:</span> Room rent and service fee invoices will be created monthly by Admin. Once invoices are available, please click <strong>View Details</strong> to review the charges and proceed with online payment.
+            </p>
+        </div>
+    </div>
+</div>

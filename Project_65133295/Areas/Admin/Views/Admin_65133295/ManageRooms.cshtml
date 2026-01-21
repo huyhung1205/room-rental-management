@@ -1,0 +1,210 @@
+﻿@model IEnumerable<Project_65133295.Models.Rooms>
+
+@{
+    ViewBag.Title = "Manage Rooms";
+    ViewBag.PageTitle = "Manage Rooms";
+    ViewBag.PageDescription = "List of rental rooms in the system";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+}
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- Header Actions -->
+    <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="relative flex-1 max-w-md">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+            <input type="text" id="roomSearch" class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all" placeholder="Search by room number, title...">
+        </div>
+        
+        <a href="@Url.Action("CreateRoom", "Admin_65133295")" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-bold rounded-xl text-white bg-primary hover:bg-primary-dark transition-all">
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Add New Room
+        </a>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Room Information</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Price & Area</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Created Date</th>
+                    <th scope="col" class="relative px-6 py-3">
+                        <span class="sr-only">Actions</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100" id="roomTableBody">
+                @foreach (var room in Model)
+                {
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-16 w-16 relative">
+                                    @{
+                                        var mainImg = room.RoomImages.FirstOrDefault(i => i.IsMainImage == true) ?? room.RoomImages.FirstOrDefault();
+                                        string imgUrl = mainImg != null ? mainImg.ImageUrl : "/public/logo.jpg";
+                                    }
+                                    <img class="h-16 w-16 rounded-lg object-cover border border-gray-100" src="@imgUrl" alt="@room.Title">
+                                    <span class="absolute -top-2 -left-2 bg-white text-primary-dark px-2 py-0.5 rounded-full text-[10px] font-bold border border-yellow-200 shadow-sm">
+                                        #@room.RoomNumber
+                                    </span>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-bold text-gray-900 group-hover:text-primary-dark transition-colors">@room.Title</div>
+                                    <div class="text-xs text-gray-500 flex items-center mt-1">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        @room.Addresses.Ward, @room.Addresses.District
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-bold text-gray-900">@room.Price.ToString("N0") <span class="text-[10px] text-gray-400 font-normal">@room.PriceUnit</span></div>
+                            <div class="text-xs text-gray-500 mt-1">@room.Area m²</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @{
+                                string statusClass = "";
+                                switch(room.RoomStatuses.StatusName) {
+                                    case "Available": statusClass = "bg-green-100 text-green-800"; break;
+                                    case "Rented": statusClass = "bg-blue-100 text-blue-800"; break;
+                                    case "Maintenance": statusClass = "bg-red-100 text-red-800"; break;
+                                    default: statusClass = "bg-gray-100 text-gray-800"; break;
+                                }
+                            }
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full @statusClass">
+                                @(room.RoomStatuses.StatusName == "Available" ? "Sẵn sàng" : 
+                                  room.RoomStatuses.StatusName == "Rented" ? "Đã cho thuê" : 
+                                  room.RoomStatuses.StatusName == "Maintenance" ? "Bảo trì" : 
+                                  room.RoomStatuses.StatusName == "Reserved" ? "Đã đặt" : room.RoomStatuses.StatusName)
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                            @room.CreatedAt.Value.ToString("dd/MM/yyyy")
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex items-center justify-end space-x-3">
+                                <a href="@Url.Action("EditRoom", "Admin_65133295", new { id = room.RoomID })" class="text-gray-400 hover:text-blue-600 transition-colors" title="Chỉnh sửa">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </a>
+                                <button onclick="deleteRoom(@room.RoomID, '@room.RoomNumber')" class="text-gray-400 hover:text-red-600 transition-colors" title="Xóa">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Empty State -->
+    @if (!Model.Any())
+    {
+        <div class="py-20 text-center">
+            <div class="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">No Rooms Yet</h3>
+            <p class="text-gray-500 max-w-xs mx-auto mt-1">Start by adding a new room to your management system.</p>
+            <a href="@Url.Action("CreateRoom", "Admin_65133295")" class="mt-6 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-bold rounded-xl text-primary-dark bg-primary hover:bg-primary-dark transition-all">
+                Add Now
+            </a>
+        </div>
+    }
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Search functionality
+        document.getElementById('roomSearch').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#roomTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        // Quick status update
+        function updateStatus(id, statusId) {
+            Swal.fire({
+                title: 'Xác nhận đổi trạng thái?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#facc15',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("UpdateRoomStatus", "Admin_65133295")',
+                        type: 'POST',
+                        data: { 
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                            id: id, 
+                            statusId: statusId 
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                location.reload();
+                            } else {
+                                Swal.fire('Lỗi', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Delete Room
+        function deleteRoom(id, roomNumber) {
+            Swal.fire({
+                title: 'Xóa phòng ' + roomNumber + '?',
+                text: "Dữ liệu liên quan như hình ảnh và tiện ích sẽ bị xóa. Hành động này không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Xóa ngay',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteRoom", "Admin_65133295")',
+                        type: 'POST',
+                        data: { 
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                            id: id 
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire('Đã xóa!', 'Phòng đã được gỡ khỏi hệ thống.', 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Thất bại', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

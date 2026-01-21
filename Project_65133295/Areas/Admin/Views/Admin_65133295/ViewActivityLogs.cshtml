@@ -1,0 +1,224 @@
+﻿@model IEnumerable<Project_65133295.Models.ActivityLogs>
+@{
+    ViewBag.Title = "Activity Log";
+    ViewBag.PageTitle = "Activity Log";
+    ViewBag.PageDescription = "Track and audit system operation history";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    
+    int currentPage = ViewBag.Page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalLogs = ViewBag.TotalLogs ?? 0;
+    
+    // Get filter values to repopulate form
+    string query = ViewBag.Query as string ?? "";
+    string fromDate = ViewBag.FromDate as string ?? "";
+    string toDate = ViewBag.ToDate as string ?? "";
+    string actionType = ViewBag.ActionType as string ?? "";
+    List<string> distinctActions = ViewBag.ActionTypes as List<string> ?? new List<string>();
+}
+
+<div class="space-y-6">
+    <!-- Header & Stats -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+            <span class="flex h-3 w-3 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </span>
+            <span class="text-sm font-medium text-gray-700">@totalLogs records</span>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+    
+        <form action="@Url.Action("ViewActivityLogs")" method="get" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            
+            <!-- Search -->
+            <div class="md:col-span-4 lg:col-span-5 relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </span>
+                <input type="text" name="query" value="@query" placeholder="Search by description, object or email..." 
+                       class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+            </div>
+
+            <!-- Action Type -->
+            <div class="md:col-span-2">
+                <select name="actionType" class="block w-full border border-gray-200 rounded-xl py-2 px-3 bg-gray-50 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+                    <option value="">All Actions</option>
+                    @foreach (var type in distinctActions)
+                    {
+                        <option value="@type" @(actionType == type ? "selected" : "")>@type</option>
+                    }
+                </select>
+            </div>
+
+            <!-- From Date -->
+            <div class="md:col-span-2">
+                <input type="date" name="fromDate" value="@fromDate" title="From Date"
+                       class="block w-full border border-gray-200 rounded-xl py-2 px-3 bg-gray-50 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+            </div>
+            <!-- To Date -->
+            <div class="md:col-span-2">
+                <input type="date" name="toDate" value="@toDate" title="To Date"
+                       class="block w-full border border-gray-200 rounded-xl py-2 px-3 bg-gray-50 text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary transition-all">
+            </div>
+            <!-- Submit -->
+            <div class="md:col-span-2 lg:col-span-1">
+                <button type="submit" class="w-full flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-bold rounded-xl text-white bg-primary hover:bg-primary-dark transition-all">
+                    Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Thời gian / Người thực hiện</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hành động</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Mô tả chi tiết</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Đối tượng</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var log in Model)
+                        {
+                            string badgeClass = "bg-gray-100 text-gray-800";
+                            string actionLower = (log.ActionType ?? "").ToLower();
+                            
+                            if (actionLower.Contains("create") || actionLower.Contains("add")) { badgeClass = "bg-green-100 text-green-800"; }
+                            else if (actionLower.Contains("update") || actionLower.Contains("edit")) { badgeClass = "bg-blue-100 text-blue-800"; }
+                            else if (actionLower.Contains("delete") || actionLower.Contains("remove")) { badgeClass = "bg-red-100 text-red-800"; }
+                            else if (actionLower.Contains("approve")) { badgeClass = "bg-yellow-100 text-yellow-800"; }
+                            
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                                            @((log.Users?.Email ?? "?").Substring(0, 1).ToUpper())
+                                        </div>
+                                        <div class="ml-3">
+                                            <div class="text-sm font-medium text-gray-900">
+                                                @(log.Users?.Email ?? "Hệ thống")
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                @(log.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss") ?? "N/A")
+                                            </div>
+                                            <div class="text-[10px] text-gray-400 mt-0.5">IP: @(log.IPAddress ?? "N/A")</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border border-transparent @badgeClass">
+                                        @log.ActionType
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900 max-w-xs truncate" title="@log.Description">@log.Description</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-mono text-gray-600 bg-gray-50 px-2 py-1 rounded inline-block">
+                                        @log.EntityType #@log.EntityID
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
+                                    {
+                                        <button onclick="showLogDetails(@log.LogID)"
+                                                class="text-primary hover:text-primary-dark font-semibold transition-colors">
+                                            Xem JSON
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-300 cursor-not-allowed">Không có dữ liệu</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-20 text-center">
+                                <div class="text-gray-400">
+                                    <svg class="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                    <p class="text-gray-500">Chưa có nhật ký hoạt động nào phù hợp.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Store log data in a global object to avoid HTML escaping issues
+        var logData = {};
+        
+        @if (Model != null)
+        {
+            foreach (var log in Model)
+            {
+                if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
+                {
+                    <text>
+                    logData[@log.LogID] = {
+                        old: @Html.Raw(Json.Encode(log.OldValues)),
+                        new: @Html.Raw(Json.Encode(log.NewValues))
+                    };
+                    </text>
+                }
+            }
+        }
+
+        function showLogDetails(id) {
+            var data = logData[id];
+            
+            if (!data) {
+                return;
+            }
+
+            let oldVal = data.old;
+            let newVal = data.new;
+
+            // Parse JSON if valid, otherwise keep as string
+            let oldJson = oldVal;
+            let newJson = newVal;
+            
+            try { if(oldJson) oldJson = JSON.stringify(JSON.parse(oldJson), null, 2); } catch(e) {}
+            try { if(newJson) newJson = JSON.stringify(JSON.parse(newJson), null, 2); } catch(e) {}
+            
+            Swal.fire({
+                title: 'Chi tiết thay đổi',
+                html: `
+                    <div class="grid grid-cols-2 gap-4 text-left text-xs font-mono">
+                        <div>
+                            <h4 class="font-bold text-red-600 mb-2 border-b pb-1">Dữ liệu cũ</h4>
+                            <pre class="bg-gray-50 p-2 rounded border overflow-auto max-h-60">${oldJson || 'null'}</pre>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-green-600 mb-2 border-b pb-1">Dữ liệu mới</h4>
+                            <pre class="bg-gray-50 p-2 rounded border overflow-auto max-h-60">${newJson || 'null'}</pre>
+                        </div>
+                    </div>
+                `,
+                width: '800px',
+                confirmButtonText: 'Đóng',
+                confirmButtonColor: '#3b82f6'
+            });
+        }
+    </script>
+}

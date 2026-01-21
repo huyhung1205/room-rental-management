@@ -1,0 +1,240 @@
+@using Project_65133295.Models
+@model Contracts
+
+@{
+    ViewBag.Title = "Create Invoice";
+    ViewBag.PageTitle = "Monthly Invoice Management";
+    ViewBag.PageDescription = "Itemize costs and generate payment invoices";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    var tenant = Model.Bookings?.Users1;
+    var room = Model.Bookings?.Rooms;
+}
+
+<div class=" mx-auto">
+    <div class="mb-6">
+        <a href="@Url.Action("ManageContracts")" class="text-sm text-yellow-600 hover:text-yellow-700 flex items-center font-medium">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Contracts List
+        </a>
+    </div>
+
+    <form action="@Url.Action("CreateInvoice")" method="post" class="space-y-6">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ContractID" value="@Model.ContractID" />
+
+        <!-- Contract Info Card -->
+        <div class="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+            <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-yellow-100 text-xs font-bold uppercase tracking-wider mb-1">Rental Contract</p>
+                    <h2 class="text-2xl font-bold">@Model.ContractNumber</h2>
+                    <div class="mt-4 flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">
+                            @((tenant != null ? tenant.FirstName : "U").Substring(0, 1))
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm">@(tenant != null ? tenant.FirstName + " " + tenant.LastName : "Tenant")</p>
+                            <p class="text-xs text-white">@tenant.PhoneNumber</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:text-right">
+                    <p class="text-yellow-100 text-xs font-bold uppercase tracking-wider mb-1">Room Number</p>
+                    <h2 class="text-3xl font-black italic">ROOM @(room != null ? room.RoomNumber : "N/A")</h2>
+                    <p class="mt-4 text-3xl font-black">@Model.RentalPrice.ToString("N0")<span class="text-sm font-normal">/month</span></p>
+                </div>
+            </div>
+            <!-- Decorative circle -->
+            <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-white/10 rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Main Details -->
+            <div class="md:col-span-2 space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-yellow-100 p-6">
+                    <h3 class="text-lg font-bold text-yellow-600 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Basic Information
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-700">Invoice Date</label>
+                            <input type="date" name="PaymentDate" value="@DateTime.Now.ToString("yyyy-MM-dd")" required
+                                   class="w-full px-4 py-2 border border-yellow-100 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-gray-700">Due Date</label>
+                            <input type="date" name="DueDate" value="@DateTime.Now.AddDays(5).ToString("yyyy-MM-dd")" required
+                                   class="w-full px-4 py-2 border border-yellow-100 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition-all">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 space-y-2">
+                        <label class="text-sm font-bold text-gray-700">Additional Notes</label>
+                        <textarea name="Notes" rows="2" placeholder="Example: Old meter reading: 120, new: 150..."
+                                  class="w-full px-4 py-2 border border-yellow-100 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none transition-all"></textarea>
+                    </div>
+                </div>
+
+                <!-- Fees Section -->
+                <div class="bg-white rounded-2xl shadow-sm border border-yellow-100 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-yellow-600 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                            Service Charges (Mandatory & Additional)
+                        </h3>
+                        <button type="button" id="btnAddFee" class="text-xs font-bold text-yellow-600 hover:text-yellow-700 flex items-center bg-yellow-50 px-3 py-1.5 rounded-lg border border-yellow-100 transition-all">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Add Other Fee
+                        </button>
+                    </div>
+
+                    <div id="feeList" class="space-y-4">
+                        <!-- Standard Item: Electricity -->
+                        <div class="fee-row grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <div class="col-span-7">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-800">Electricity Fee</p>
+                                        <p class="text-[10px] text-gray-500 italic">Based on meter reading</p>
+                                    </div>
+                                    <input type="hidden" name="FeeName[]" value="Electricity">
+                                </div>
+                            </div>
+                            <div class="col-span-4">
+                                <input type="number" name="FeeAmount[]" value="0" min="0" class="fee-amount w-full px-4 py-2 border border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none text-right font-bold text-yellow-700">
+                            </div>
+                            <div class="col-span-1 text-center opacity-20" title="Mandatory fee">
+                                <svg class="w-5 h-5 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                        </div>
+
+                        <!-- Standard Item: Water -->
+                        <div class="fee-row grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <div class="col-span-7">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.628.282a2 2 0 01-1.806 0l-.628-.282A6 6 0 005.23 14.404l-2.387.477a2 2 0 00-1.022.547V18a2 2 0 002 2h15a2 2 0 002-2v-2.572zM4 9a5 5 0 0110 0v.282a2 2 0 00.194.854l.05.101A5 5 0 0113 18H5a5 5 0 01-1-9.282V9z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-800">Water Fee</p>
+                                        <p class="text-[10px] text-gray-500 italic">Standard or volume-based</p>
+                                    </div>
+                                    <input type="hidden" name="FeeName[]" value="Water">
+                                </div>
+                            </div>
+                            <div class="col-span-4">
+                                <input type="number" name="FeeAmount[]" value="0" min="0" class="fee-amount w-full px-4 py-2 border border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none text-right font-bold text-yellow-700">
+                            </div>
+                            <div class="col-span-1 text-center opacity-20" title="Mandatory fee">
+                                <svg class="w-5 h-5 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Sidebar -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-2xl p-6 text-gray-800 shadow-xl border border-yellow-100 sticky top-6">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-yellow-600 mb-6 border-b border-yellow-100 pb-2">Invoice Summary</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500">Room Rental Cost</span>
+                            <span class="font-bold">@Model.RentalPrice.ToString("N0")đ</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500">Total Service Fees</span>
+                            <span id="txtSumFees" class="font-bold text-yellow-600">0đ</span>
+                        </div>
+                        <div class="pt-4 border-t-2 border-dashed border-yellow-100 flex justify-between items-end">
+                            <span class="text-lg font-bold">Total Payment</span>
+                            <div class="text-right">
+                                <p id="txtTotalAmount" class="text-3xl font-black text-yellow-500">@Model.RentalPrice.ToString("N0")đ</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full mt-8 py-4 bg-yellow-400 hover:bg-yellow-500 text-white font-black rounded-xl shadow-lg shadow-yellow-400/30 transition-all flex items-center justify-center space-x-2 transform hover:scale-[1.02] active:scale-95">
+                        <span>SEND INVOICE</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <p class="text-[10px] text-gray-400 text-center mt-4 italic leading-tight">After clicking send, tenant @(tenant?.LastName) will immediately receive a payment request notification.</p>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function() {
+            const basePrice = @Model.RentalPrice.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            function calculateTotal() {
+                let sumFees = 0;
+                $('.fee-amount').each(function() {
+                    let val = parseFloat($(this).val()) || 0;
+                    sumFees += val;
+                });
+
+                $('#txtSumFees').text(sumFees.toLocaleString('vi-VN') + 'đ');
+                const total = basePrice + sumFees;
+                $('#txtTotalAmount').text(total.toLocaleString('vi-VN') + 'đ');
+            }
+
+            // Numeric input only
+            $(document).on('input', '.fee-amount', function() {
+                if ($(this).val() < 0) $(this).val(0);
+                calculateTotal();
+            });
+
+            // Add Fee Row
+            $('#btnAddFee').click(function() {
+                const newRow = `
+                    <div class="fee-row grid grid-cols-12 gap-3 items-center p-3 bg-white rounded-xl border border-yellow-100 shadow-sm animate-fade-in-down">
+                        <div class="col-span-7">
+                            <input type="text" name="FeeName[]" placeholder="Other fee type name (Example: Cleaning...)" class="w-full px-4 py-2 border border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none text-sm">
+                        </div>
+                        <div class="col-span-4">
+                            <input type="number" name="FeeAmount[]" value="0" min="0" class="fee-amount w-full px-4 py-2 border border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none text-right font-bold text-gray-700">
+                        </div>
+                        <div class="col-span-1 text-center">
+                            <button type="button" class="btn-remove-fee p-2 bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                $('#feeList').append(newRow);
+                calculateTotal();
+            });
+
+            // Remove Fee Row
+            $(document).on('click', '.btn-remove-fee', function(e) {
+                e.preventDefault();
+                $(this).closest('.fee-row').remove();
+                calculateTotal();
+            });
+
+            calculateTotal();
+        });
+    </script>
+}
